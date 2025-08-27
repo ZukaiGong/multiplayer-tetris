@@ -1,10 +1,16 @@
-import { useStoreDispatch } from "@/store/index";
+import { useStore, useStoreDispatch } from "@/store/index";
 import { actions } from "@/store/actions";
+import { blankLine } from "@/utils/constant";
 
 import type { Matrix } from "@/types";
 
-function getStartMatrix(): Matrix {
-  return [];
+function getStartMatrix(startLines: number): Matrix {
+  // TODO: 游戏开始时，随机生成startLines行填充
+  const startMatrix = [];
+  for (let i = 0, len = 20 - startLines; i < len; i++) {
+    startMatrix.unshift([...blankLine]);
+  }
+  return startMatrix;
 }
 
 export default function useStates() {
@@ -13,7 +19,7 @@ export default function useStates() {
   return {
     // 游戏开始
     start: () => {
-      const startMatrix = getStartMatrix();
+      const startMatrix = getStartMatrix(0);
       storeDispatch(actions.matrix(startMatrix));
     },
   };
