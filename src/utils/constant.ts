@@ -28,7 +28,9 @@ export const blockShape = {
 } as const;
 
 // 方块类别列表
-export const blockType: Readonly<string[]> = Object.keys(blockShape);
+export const blockType = Object.keys(blockShape) as Readonly<
+  Array<keyof typeof blockShape>
+>;
 
 export const fillLine = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1] as const;
 

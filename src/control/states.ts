@@ -14,13 +14,20 @@ function getStartMatrix(startLines: number): Matrix {
 }
 
 export default function useStates() {
+  const store = useStore();
   const storeDispatch = useStoreDispatch();
 
   return {
     // 游戏开始
-    start: () => {
+    start() {
       const startMatrix = getStartMatrix(0);
       storeDispatch(actions.matrix(startMatrix));
+      // storeDispatch(actions.moveBlock({ type: store.nextBlock }));
+      storeDispatch(actions.nextBlock());
+      this.auto();
     },
+
+    // 自动下落
+    auto() {},
   };
 }
