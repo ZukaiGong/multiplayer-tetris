@@ -32,6 +32,25 @@ export const blockType = Object.keys(blockShape) as Readonly<
   Array<keyof typeof blockShape>
 >;
 
+// 这个对象用于定义每种方块在旋转时的旋转中心点（原点）。
+export const origin = {
+  I: [
+    [-1, 1],
+    [1, -1],
+  ],
+  L: [[0, 0]],
+  J: [[0, 0]],
+  Z: [[0, 0]],
+  S: [[0, 0]],
+  O: [[0, 0]],
+  T: [
+    [0, 0],
+    [1, 0],
+    [-1, 1],
+    [0, -1],
+  ],
+} as const;
+
 export const fillLine = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1] as const;
 
 export const blankLine = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] as const;
