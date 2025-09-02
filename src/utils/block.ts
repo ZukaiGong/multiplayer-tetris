@@ -80,7 +80,38 @@ export default class Block {
     }
   }
 
-  rotate() {}
+  rotate() {
+    const result: number[][] = [];
+
+    // 逆时针旋转
+    this.shape.forEach((m) =>
+      m.forEach((n, i) => {
+        const index = m.length - 1 - i;
+        if (!result[index]) {
+          result[index] = [];
+        }
+        result[index].push(n);
+      })
+    );
+
+    // 旋转后，调整坐标位置
+    const curOrigin = origin[this.type][this.rotateIndex];
+    const nextXy = [this.xy[0] + curOrigin[0], this.xy[1] + curOrigin[1]];
+
+    // 更新旋转状态计数器
+    const nextRotateIndex =
+      this.rotateIndex + 1 >= origin[this.type].length
+        ? 0
+        : this.rotateIndex + 1;
+
+    return {
+      shape: result,
+      type: this.type,
+      xy: nextXy,
+      rotateIndex: nextRotateIndex,
+      timeStamp: this.timeStamp,
+    };
+  }
 
   fall(n = 1) {
     return {
@@ -98,7 +129,7 @@ export default class Block {
       type: this.type,
       xy: [this.xy[0], this.xy[1] + 1],
       rotateIndex: this.rotateIndex,
-      timeStamp: Date.now(),
+      timeStamp: this.timeStamp,
     };
   }
 
@@ -108,7 +139,7 @@ export default class Block {
       type: this.type,
       xy: [this.xy[0], this.xy[1] - 1],
       rotateIndex: this.rotateIndex,
-      timeStamp: Date.now(),
+      timeStamp: this.timeStamp,
     };
   }
 }
