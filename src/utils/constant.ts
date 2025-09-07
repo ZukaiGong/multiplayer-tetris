@@ -62,3 +62,5 @@ export const blankMatrix: Readonly<(typeof blankLine)[]> = (() => {
   }
   return matrix;
 })();
+
+export const speeds = [800, 650, 500, 370, 250, 160] as const;

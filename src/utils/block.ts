@@ -49,6 +49,7 @@ export default class Block {
       this.shape = options.shape;
     }
 
+    // 设定起始坐标
     if (!options.xy) {
       switch (options.type) {
         case "I": // I
@@ -96,7 +97,10 @@ export default class Block {
 
     // 旋转后，调整坐标位置
     const curOrigin = origin[this.type][this.rotateIndex];
-    const nextXy = [this.xy[0] + curOrigin[0], this.xy[1] + curOrigin[1]];
+    const nextXy = [this.xy[0] + curOrigin[0], this.xy[1] + curOrigin[1]] as [
+      number,
+      number
+    ];
 
     // 更新旋转状态计数器
     const nextRotateIndex =
@@ -117,7 +121,7 @@ export default class Block {
     return {
       shape: this.shape,
       type: this.type,
-      xy: [this.xy[0] + n, this.xy[1]],
+      xy: [this.xy[0] + n, this.xy[1]] as [number, number],
       rotateIndex: this.rotateIndex,
       timeStamp: Date.now(),
     };
@@ -127,7 +131,7 @@ export default class Block {
     return {
       shape: this.shape,
       type: this.type,
-      xy: [this.xy[0], this.xy[1] + 1],
+      xy: [this.xy[0], this.xy[1] + 1] as [number, number],
       rotateIndex: this.rotateIndex,
       timeStamp: this.timeStamp,
     };
@@ -137,7 +141,7 @@ export default class Block {
     return {
       shape: this.shape,
       type: this.type,
-      xy: [this.xy[0], this.xy[1] - 1],
+      xy: [this.xy[0], this.xy[1] - 1] as [number, number],
       rotateIndex: this.rotateIndex,
       timeStamp: this.timeStamp,
     };
