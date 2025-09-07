@@ -22,7 +22,9 @@ export default function useStates() {
     start() {
       const startMatrix = getStartMatrix(0);
       storeDispatch(actions.matrix(startMatrix));
-      // storeDispatch(actions.moveBlock({ type: store.nextBlock }));
+      storeDispatch(
+        actions.moveBlock({ blockParam: { type: store.nextBlock } })
+      );
       storeDispatch(actions.nextBlock());
       this.auto();
     },

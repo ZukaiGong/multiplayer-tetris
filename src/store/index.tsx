@@ -2,6 +2,7 @@ import { createContext, useReducer, useContext, default as React } from "react";
 
 import { ActionType } from "./actions";
 import { getNextType } from "@/utils";
+import Block from "@/utils/block";
 
 import type { Matrix } from "@/types";
 import type { Action } from "./actions";
@@ -9,6 +10,7 @@ import type { Action } from "./actions";
 interface StoreContext {
   matrix: Matrix;
   speedRun: number;
+  moveBlock: Block | null;
   nextBlock: ReturnType<typeof getNextType>;
 }
 
@@ -24,6 +26,11 @@ function storeReducer(store: StoreContext, action: Action) {
         ...store,
         speedRun: action.data,
       };
+    case ActionType.MOVE_BLOCK:
+      return {
+        ...store,
+        moveBlock: action.data,
+      };
     case ActionType.NEXT_BLOCK:
       return {
         ...store,
@@ -37,6 +44,7 @@ function storeReducer(store: StoreContext, action: Action) {
 const initialStore: StoreContext = {
   matrix: [],
   speedRun: 1,
+  moveBlock: null,
   nextBlock: getNextType(),
 };
 
