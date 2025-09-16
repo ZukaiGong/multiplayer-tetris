@@ -13,6 +13,8 @@ interface StoreContext {
   moveBlock: Block | null;
   nextBlock: ReturnType<typeof getNextType>;
   lock: boolean;
+  point: number;
+  max: number;
 }
 
 function storeReducer(store: StoreContext, action: Action) {
@@ -42,6 +44,16 @@ function storeReducer(store: StoreContext, action: Action) {
         ...store,
         lock: action.data,
       };
+    case ActionType.POINT:
+      return {
+        ...store,
+        point: action.data,
+      };
+    case ActionType.MAX:
+      return {
+        ...store,
+        max: action.data,
+      };
     default:
       throw new Error("unknown action");
   }
@@ -53,6 +65,8 @@ const initialStore: StoreContext = {
   moveBlock: null,
   nextBlock: getNextType(),
   lock: false,
+  point: 0,
+  max: 0,
 };
 
 const StoreContext = createContext<StoreContext>(initialStore);
