@@ -28,3 +28,19 @@ export function want(
     })
   );
 }
+
+// 判断是否有能消除的行，如果有返回行索引
+export function isClear(matrix: Matrix) {
+  const clearLines: number[] = [];
+  matrix.forEach((m, rowIdx) => {
+    if (m.every((n) => !!n)) {
+      clearLines.push(rowIdx);
+    }
+  });
+  return clearLines.length > 0 ? clearLines : false;
+}
+
+// 游戏是否结束，以第一行落下方块为依据
+export function isOver(matrix: Matrix) {
+  return matrix[0].some((m) => !!m);
+}

@@ -1,7 +1,7 @@
 import { useStore, useStoreDispatch } from "@/store/index";
 import { actions } from "@/store/actions";
 import { blankLine, speeds } from "@/utils/constant";
-import { want } from "@/utils";
+import { want, isClear, isOver } from "@/utils";
 
 import type { Matrix } from "@/types";
 
@@ -54,7 +54,7 @@ export default function useStates() {
               }
             })
           );
-          this.nextArount(newMatrix);
+          this.nextAround(newMatrix);
         }
       };
 
@@ -65,7 +65,51 @@ export default function useStates() {
       );
     },
 
-    // 生成下一个方块
-    nextArount(matrix: Matrix, stopDownTrigger?: Function) {},
+    // 前一个方块已经固定到界面中，生成下一个方块
+    nextAround(matrix: Matrix, stopDownTrigger?: Function) {
+      clearTimeout(fallInterval);
+      storeDispatch(actions.lock(true));
+      storeDispatch(actions.matrix(matrix));
+      if (typeof stopDownTrigger === "function") {
+        stopDownTrigger();
+      }
+
+      // 得分
+      const addPoint = store.point + 10 + (store.speedRun - 1) * 2;
+      this.dispatchPoint(addPoint);
+
+      // 如果能消除行，播放消行音效
+      // if (isClear(matrix)) {
+      //   if (music.clear) {
+      //     music.clear();
+      //   }
+      //   return;
+      // }
+
+      // 如果结束，播放结束音效
+      // if (isOver(matrix)) {
+      //   if (music.gameover) {
+      //     music.gameover();
+      //   }
+      //   states.overStart();
+      //   return;
+      // }
+
+      setTimeout(() => {
+        storeDispatch(actions.lock(false));
+        storeDispatch(
+          actions.moveBlock({ blockParam: { type: store.nextBlock } })
+        );
+        storeDispatch(actions.nextBlock());
+      }, 100);
+    },
+
+    // 写入分数，同时判断是否创造了最高记录
+    dispatchPoint(point: number) {
+      storeDispatch(actions.point(point));
+      if (point > 0 && point > store.max) {
+        storeDispatch(actions.max(point));
+      }
+    },
   };
 }
