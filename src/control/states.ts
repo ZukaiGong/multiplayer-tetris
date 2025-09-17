@@ -78,22 +78,22 @@ export default function useStates() {
       const addPoint = store.point + 10 + (store.speedRun - 1) * 2;
       this.dispatchPoint(addPoint);
 
-      // 如果能消除行，播放消行音效
-      // if (isClear(matrix)) {
-      //   if (music.clear) {
-      //     music.clear();
-      //   }
-      //   return;
-      // }
+      // 如果能消除行，播放消行音效，停止生成下一个方块
+      if (isClear(matrix)) {
+        // if (music.clear) {
+        //   music.clear();
+        // }
+        return;
+      }
 
-      // 如果结束，播放结束音效
-      // if (isOver(matrix)) {
-      //   if (music.gameover) {
-      //     music.gameover();
-      //   }
-      //   states.overStart();
-      //   return;
-      // }
+      // 如果结束，播放结束音效，停止生成下一个方块
+      if (isOver(matrix)) {
+        // if (music.gameover) {
+        //   music.gameover();
+        // }
+        this.overStart();
+        return;
+      }
 
       setTimeout(() => {
         storeDispatch(actions.lock(false));
@@ -119,6 +119,14 @@ export default function useStates() {
         return;
       }
       this.auto();
+    },
+
+    // 游戏结束，触发动画
+    overStart() {
+      clearTimeout(fallInterval);
+      storeDispatch(actions.lock(true));
+      storeDispatch(actions.reset(true));
+      storeDispatch(actions.pause(false));
     },
   };
 }
