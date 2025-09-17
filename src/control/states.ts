@@ -111,5 +111,14 @@ export default function useStates() {
         storeDispatch(actions.max(point));
       }
     },
+
+    pause(isPause: boolean) {
+      storeDispatch(actions.pause(isPause));
+      if (isPause) {
+        clearTimeout(fallInterval);
+        return;
+      }
+      this.auto();
+    },
   };
 }

@@ -10,6 +10,7 @@ export enum ActionType {
   LOCK = "LOCK", // 用于临时禁止玩家操作，避免在动画、消行、生成新方块等关键时刻出现状态错乱或多次触发操作。
   POINT = "POINT", // 记录当前得分
   MAX = "MAX", // 记录最高得分
+  PAUSE = "PAUSE", // 暂停
 }
 
 export type Action =
@@ -19,7 +20,8 @@ export type Action =
   | { type: ActionType.MOVE_BLOCK; data: Block | null }
   | { type: ActionType.LOCK; data: boolean }
   | { type: ActionType.POINT; data: number }
-  | { type: ActionType.MAX; data: number };
+  | { type: ActionType.MAX; data: number }
+  | { type: ActionType.PAUSE; data: boolean };
 
 export const actions = {
   matrix,
@@ -29,6 +31,7 @@ export const actions = {
   lock,
   point,
   max,
+  pause,
 };
 
 function matrix(data: Matrix): Action {
@@ -79,6 +82,13 @@ function point(data: number): Action {
 function max(data: number): Action {
   return {
     type: ActionType.POINT,
+    data,
+  };
+}
+
+function pause(data: boolean): Action {
+  return {
+    type: ActionType.PAUSE,
     data,
   };
 }
