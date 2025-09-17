@@ -1,6 +1,6 @@
 import { useStore, useStoreDispatch } from "@/store/index";
 import { actions } from "@/store/actions";
-import { blankLine, speeds } from "@/utils/constant";
+import { blankLine, blankMatrix, speeds } from "@/utils/constant";
 import { want, isClear, isOver } from "@/utils";
 
 import type { Matrix } from "@/types";
@@ -127,6 +127,15 @@ export default function useStates() {
       storeDispatch(actions.lock(true));
       storeDispatch(actions.reset(true));
       storeDispatch(actions.pause(false));
+    },
+
+    // 游戏结束动画完成
+    overEnd() {
+      storeDispatch(actions.matrix(blankMatrix));
+      storeDispatch(actions.moveBlock({ reset: true }));
+      storeDispatch(actions.reset(false));
+      storeDispatch(actions.lock(false));
+      storeDispatch(actions.clearLines(0));
     },
   };
 }
