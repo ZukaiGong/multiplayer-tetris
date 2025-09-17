@@ -12,6 +12,7 @@ export enum ActionType {
   MAX = "MAX", // 记录最高得分
   PAUSE = "PAUSE", // 暂停
   RESET = "RESET",
+  CLEAR_LINES = "CLEAR_LINES", // 消除的行数
 }
 
 export type Action =
@@ -23,7 +24,8 @@ export type Action =
   | { type: ActionType.POINT; data: number }
   | { type: ActionType.MAX; data: number }
   | { type: ActionType.PAUSE; data: boolean }
-  | { type: ActionType.RESET; data: boolean };
+  | { type: ActionType.RESET; data: boolean }
+  | { type: ActionType.CLEAR_LINES; data: number };
 
 export const actions = {
   matrix,
@@ -35,6 +37,7 @@ export const actions = {
   max,
   pause,
   reset,
+  clearLines,
 };
 
 function matrix(data: Matrix): Action {
@@ -51,13 +54,18 @@ function speedRun(data: number): Action {
   };
 }
 
+function moveBlock(option: { reset: true }): Action;
 function moveBlock(option: {
   blockParam: ConstructorParameters<typeof Block>[0];
+  reset?: boolean;
+}): Action;
+function moveBlock(option: {
+  blockParam?: ConstructorParameters<typeof Block>[0];
   reset?: boolean;
 }): Action {
   return {
     type: ActionType.MOVE_BLOCK,
-    data: option.reset ? null : new Block(option.blockParam),
+    data: option.reset ? null : new Block(option.blockParam!),
   };
 }
 
@@ -99,6 +107,13 @@ function pause(data: boolean): Action {
 function reset(data: boolean): Action {
   return {
     type: ActionType.RESET,
+    data,
+  };
+}
+
+function clearLines(data: number): Action {
+  return {
+    type: ActionType.CLEAR_LINES,
     data,
   };
 }

@@ -17,6 +17,7 @@ interface StoreContext {
   max: number;
   pause: boolean;
   reset: boolean;
+  clearLines: number;
 }
 
 function storeReducer(store: StoreContext, action: Action) {
@@ -66,6 +67,11 @@ function storeReducer(store: StoreContext, action: Action) {
         ...store,
         reset: action.data,
       };
+    case ActionType.CLEAR_LINES:
+      return {
+        ...store,
+        clearLines: action.data,
+      };
     default:
       throw new Error("unknown action");
   }
@@ -81,6 +87,7 @@ const initialStore: StoreContext = {
   max: 0,
   pause: false,
   reset: false,
+  clearLines: 0,
 };
 
 const StoreContext = createContext<StoreContext>(initialStore);
