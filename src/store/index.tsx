@@ -16,6 +16,7 @@ interface StoreContext {
   point: number;
   max: number;
   pause: boolean;
+  reset: boolean;
 }
 
 function storeReducer(store: StoreContext, action: Action) {
@@ -60,6 +61,11 @@ function storeReducer(store: StoreContext, action: Action) {
         ...store,
         pause: action.data,
       };
+    case ActionType.RESET:
+      return {
+        ...store,
+        reset: action.data,
+      };
     default:
       throw new Error("unknown action");
   }
@@ -74,6 +80,7 @@ const initialStore: StoreContext = {
   point: 0,
   max: 0,
   pause: false,
+  reset: false,
 };
 
 const StoreContext = createContext<StoreContext>(initialStore);

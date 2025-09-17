@@ -11,6 +11,7 @@ export enum ActionType {
   POINT = "POINT", // 记录当前得分
   MAX = "MAX", // 记录最高得分
   PAUSE = "PAUSE", // 暂停
+  RESET = "RESET",
 }
 
 export type Action =
@@ -21,7 +22,8 @@ export type Action =
   | { type: ActionType.LOCK; data: boolean }
   | { type: ActionType.POINT; data: number }
   | { type: ActionType.MAX; data: number }
-  | { type: ActionType.PAUSE; data: boolean };
+  | { type: ActionType.PAUSE; data: boolean }
+  | { type: ActionType.RESET; data: boolean };
 
 export const actions = {
   matrix,
@@ -32,6 +34,7 @@ export const actions = {
   point,
   max,
   pause,
+  reset,
 };
 
 function matrix(data: Matrix): Action {
@@ -89,6 +92,13 @@ function max(data: number): Action {
 function pause(data: boolean): Action {
   return {
     type: ActionType.PAUSE,
+    data,
+  };
+}
+
+function reset(data: boolean): Action {
+  return {
+    type: ActionType.RESET,
     data,
   };
 }
