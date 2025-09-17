@@ -1,6 +1,12 @@
 import { useStore, useStoreDispatch } from "@/store/index";
-import { actions } from "@/store/actions";
-import { blankLine, blankMatrix, speeds } from "@/utils/constant";
+import { actions, ActionType } from "@/store/actions";
+import {
+  blankLine,
+  blankMatrix,
+  speeds,
+  clearPoints,
+  eachLines,
+} from "@/utils/constant";
 import { want, isClear, isOver } from "@/utils";
 
 import type { Matrix } from "@/types";
@@ -24,7 +30,7 @@ export default function useStates() {
   return {
     // 游戏开始
     start() {
-      // storeDispatch(actions.speedRun(store.speedStart));
+      storeDispatch(actions.speedRun(store.speedStart));
       const startMatrix = getStartMatrix(0);
       storeDispatch(actions.matrix(startMatrix));
       storeDispatch(
@@ -101,6 +107,7 @@ export default function useStates() {
           actions.moveBlock({ blockParam: { type: store.nextBlock } })
         );
         storeDispatch(actions.nextBlock());
+        this.auto();
       }, 100);
     },
 
@@ -110,6 +117,38 @@ export default function useStates() {
       if (point > 0 && point > store.max) {
         storeDispatch(actions.max(point));
       }
+    },
+
+    // 执行消除行操作
+    clearLines(matrix: Matrix, lines: number[]) {
+      const newMatrix = matrix.map((row) => [...row]);
+      // 删除要消除的行，并添加空白行
+      lines.forEach((n) => {
+        newMatrix.splice(n, 1);
+        newMatrix.unshift([...blankLine]);
+      });
+
+      storeDispatch(actions.matrix(newMatrix));
+      // 因为有要消除的行时，nextAround被中断，所以在消除完之后要再继续生成新的方块
+      storeDispatch(
+        actions.moveBlock({ blockParam: { type: store.nextBlock } })
+      );
+      storeDispatch(actions.nextBlock());
+      this.auto();
+
+      // 累计消除的行数
+      storeDispatch(actions.lock(false));
+      const clearLinesCount = store.clearLines + lines.length;
+      storeDispatch(actions.clearLines(clearLinesCount));
+
+      // 得分
+      const addPoint = store.point + clearPoints[lines.length - 1]; // 一次消除的行越多, 加分越多
+      this.dispatchPoint(addPoint);
+
+      // 消除行数, 增加对应速度
+      const speedAdd = Math.floor(clearLinesCount / eachLines);
+      const speedNow = store.speedStart + speedAdd;
+      storeDispatch(actions.speedRun(speedNow > 6 ? 6 : speedNow));
     },
 
     pause(isPause: boolean) {

@@ -9,6 +9,7 @@ import type { Action } from "./actions";
 
 interface StoreContext {
   matrix: Matrix;
+  speedStart: number;
   speedRun: number;
   moveBlock: Block | null;
   nextBlock: ReturnType<typeof getNextType>;
@@ -79,6 +80,7 @@ function storeReducer(store: StoreContext, action: Action) {
 
 const initialStore: StoreContext = {
   matrix: [],
+  speedStart: 1,
   speedRun: 1,
   moveBlock: null,
   nextBlock: getNextType(),

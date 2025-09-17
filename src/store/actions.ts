@@ -12,7 +12,7 @@ export enum ActionType {
   MAX = "MAX", // 记录最高得分
   PAUSE = "PAUSE", // 暂停
   RESET = "RESET",
-  CLEAR_LINES = "CLEAR_LINES", // 消除的行数
+  CLEAR_LINES = "CLEAR_LINES", // 累计消除的行数
 }
 
 export type Action =
