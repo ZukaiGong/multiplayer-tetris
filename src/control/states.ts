@@ -1,6 +1,6 @@
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useStore, useStoreDispatch } from "@/store/index";
-import { actions, ActionType } from "@/store/actions";
+import { actions } from "@/store/actions";
 import {
   blankLine,
   blankMatrix,
@@ -25,6 +25,12 @@ export default function useGameStates() {
   const store = useStore();
   const storeDispatch = useStoreDispatch();
 
+  // 保持对最新 store 的引用，避免定时器闭包读取到过期的 store
+  const storeRef = useRef(store);
+  useEffect(() => {
+    storeRef.current = store;
+  }, [store]);
+
   // 自动下落setTimeout变量
   const fallIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -44,7 +50,7 @@ export default function useGameStates() {
    */
   function dispatchPoint(point: number) {
     storeDispatch(actions.point(point));
-    if (point > 0 && point > store.max) {
+    if (point > 0 && point > storeRef.current.max) {
       storeDispatch(actions.max(point));
     }
   }
@@ -53,10 +59,12 @@ export default function useGameStates() {
    * 游戏开始
    */
   function start() {
-    storeDispatch(actions.speedRun(store.speedStart));
+    storeDispatch(actions.speedRun(storeRef.current.speedStart));
     const startMatrix = getStartMatrix(0);
     storeDispatch(actions.matrix(startMatrix));
-    storeDispatch(actions.moveBlock({ blockParam: { type: store.nextBlock } }));
+    storeDispatch(
+      actions.moveBlock({ blockParam: { type: storeRef.current.nextBlock } })
+    );
     storeDispatch(actions.nextBlock());
     auto();
   }
@@ -68,14 +76,17 @@ export default function useGameStates() {
   function auto(timeout?: number) {
     const out = typeof timeout === "number" && timeout < 0 ? 0 : timeout;
     const fall = () => {
-      const next = store.moveBlock!.fall();
-      if (want(next, store.matrix)) {
+      const next = storeRef.current.moveBlock!.fall();
+      if (want(next, storeRef.current.matrix)) {
         storeDispatch(actions.moveBlock({ blockParam: next }));
-        fallIntervalRef.current = setTimeout(fall, speeds[store.speedRun - 1]);
+        fallIntervalRef.current = setTimeout(
+          fall,
+          speeds[storeRef.current.speedRun - 1]
+        );
       } else {
         // 如果方块已经无法移动了，就将其固定在matrix上
-        const newMatrix = store.matrix.map((row) => [...row]);
-        const { shape, xy } = store.moveBlock!;
+        const newMatrix = storeRef.current.matrix.map((row) => [...row]);
+        const { shape, xy } = storeRef.current.moveBlock!;
         shape.forEach((m, i) =>
           m.forEach((n, j) => {
             if (n && xy[0] + i >= 0) {
@@ -91,7 +102,7 @@ export default function useGameStates() {
     clearFallInterval();
     fallIntervalRef.current = setTimeout(
       fall,
-      out === undefined ? speeds[store.speedRun - 1] : out
+      out === undefined ? speeds[storeRef.current.speedRun - 1] : out
     );
   }
 
@@ -110,7 +121,8 @@ export default function useGameStates() {
     }
 
     // 得分
-    const addPoint = store.point + 10 + (store.speedRun - 1) * 2;
+    const addPoint =
+      storeRef.current.point + 10 + (storeRef.current.speedRun - 1) * 2;
     dispatchPoint(addPoint);
 
     // 如果能消除行，播放消行音效，停止生成下一个方块
@@ -133,7 +145,7 @@ export default function useGameStates() {
     setTimeout(() => {
       storeDispatch(actions.lock(false));
       storeDispatch(
-        actions.moveBlock({ blockParam: { type: store.nextBlock } })
+        actions.moveBlock({ blockParam: { type: storeRef.current.nextBlock } })
       );
       storeDispatch(actions.nextBlock());
       auto();
@@ -155,22 +167,24 @@ export default function useGameStates() {
 
     storeDispatch(actions.matrix(newMatrix));
     // 因为有要消除的行时，nextAround被中断，所以在消除完之后要再继续生成新的方块
-    storeDispatch(actions.moveBlock({ blockParam: { type: store.nextBlock } }));
+    storeDispatch(
+      actions.moveBlock({ blockParam: { type: storeRef.current.nextBlock } })
+    );
     storeDispatch(actions.nextBlock());
     auto();
 
     // 累计消除的行数
     storeDispatch(actions.lock(false));
-    const clearLinesCount = store.clearLines + lines.length;
+    const clearLinesCount = storeRef.current.clearLines + lines.length;
     storeDispatch(actions.clearLines(clearLinesCount));
 
     // 得分
-    const addPoint = store.point + clearPoints[lines.length - 1]; // 一次消除的行越多, 加分越多
+    const addPoint = storeRef.current.point + clearPoints[lines.length - 1]; // 一次消除的行越多, 加分越多
     dispatchPoint(addPoint);
 
     // 消除行数, 增加对应速度
     const speedAdd = Math.floor(clearLinesCount / eachLines);
-    const speedNow = store.speedStart + speedAdd;
+    const speedNow = storeRef.current.speedStart + speedAdd;
     storeDispatch(actions.speedRun(speedNow > 6 ? 6 : speedNow));
   }
 
