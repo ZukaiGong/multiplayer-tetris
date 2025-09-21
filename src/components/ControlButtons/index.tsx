@@ -1,11 +1,10 @@
-import { useStore, useStoreDispatch } from "@/store/index";
+import { useStore } from "@/store/index";
 import useGameStates from "@/control/states";
 
 import style from "./index.module.css";
 
 export default function ControlButtons() {
   const store = useStore();
-  // const storeDispatch = useStoreDispatch();
   const gameStates = useGameStates();
 
   // 开始或结束游戏
