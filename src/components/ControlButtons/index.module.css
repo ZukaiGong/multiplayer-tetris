@@ -1,0 +1,5 @@
+.buttons-wrapper {
+  :global(button + button) {
+    margin-left: 8px;
+  }
+}
