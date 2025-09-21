@@ -3,6 +3,7 @@ import { createContext, useReducer, useContext, default as React } from "react";
 import { ActionType } from "./actions";
 import { getNextType } from "@/utils";
 import Block from "@/utils/block";
+import { blankMatrix } from "@/utils/constant";
 
 import type { Matrix } from "@/types";
 import type { Action } from "./actions";
@@ -79,7 +80,7 @@ function storeReducer(store: StoreContext, action: Action) {
 }
 
 const initialStore: StoreContext = {
-  matrix: [],
+  matrix: blankMatrix,
   speedStart: 1,
   speedRun: 1,
   moveBlock: null,
@@ -109,10 +110,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useStore() {
   return useContext(StoreContext);
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useStoreDispatch() {
   return useContext(StoreDispatchContext);
 }

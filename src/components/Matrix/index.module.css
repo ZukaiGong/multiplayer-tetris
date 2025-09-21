@@ -23,13 +23,13 @@
     background: #879372;
     overflow: hidden;
   }
-  &.c {
+  &:global(.c) {
     border-color: #000;
     &:after {
       background: #000;
     }
   }
-  &.d {
+  &:global(.d) {
     border-color: #560000;
     &:after {
       background: #560000;
