@@ -18,7 +18,7 @@ export default function ControlButtons() {
 
   // 切换暂停
   function handleTogglePause() {
-    gameStates.pause(!!store.pause);
+    gameStates.pause(!store.pause);
   }
 
   return (
