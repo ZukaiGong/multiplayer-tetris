@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useStore, useStoreDispatch } from "@/store/index";
 import { actions, ActionType } from "@/store/actions";
 import {
@@ -20,161 +21,197 @@ function getStartMatrix(startLines: number): Matrix {
   return startMatrix;
 }
 
-// 自动下落setTimeout变量
-let fallInterval: ReturnType<typeof setTimeout>;
-
-export default function useStates() {
+export default function useGameStates() {
   const store = useStore();
   const storeDispatch = useStoreDispatch();
 
-  return {
-    // 游戏开始
-    start() {
-      storeDispatch(actions.speedRun(store.speedStart));
-      const startMatrix = getStartMatrix(0);
-      storeDispatch(actions.matrix(startMatrix));
-      storeDispatch(
-        actions.moveBlock({ blockParam: { type: store.nextBlock } })
-      );
-      storeDispatch(actions.nextBlock());
-      this.auto();
-    },
+  // 自动下落setTimeout变量
+  const fallIntervalRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    // 自动下落
-    auto(timeout?: number) {
-      const out = typeof timeout === "number" && timeout < 0 ? 0 : timeout;
-      const fall = () => {
-        const next = store.moveBlock!.fall();
-        if (want(next, store.matrix)) {
-          storeDispatch(actions.moveBlock({ blockParam: next }));
-          fallInterval = setTimeout(fall, speeds[store.speedRun - 1]);
-        } else {
-          // 如果方块已经无法移动了，就将其固定在matrix上
-          const newMatrix = store.matrix.map((row) => [...row]);
-          const { shape, xy } = store.moveBlock!;
-          shape.forEach((m, i) =>
-            m.forEach((n, j) => {
-              if (n && xy[0] + i >= 0) {
-                // 纵坐标有可能为负，所以需确定当前小方块在显示范围内
-                newMatrix[xy[0] + i][xy[1] + j] = 1;
-              }
-            })
-          );
-          this.nextAround(newMatrix);
-        }
-      };
+  /**
+   * 清除定时器
+   */
+  const clearFallInterval = () => {
+    if (fallIntervalRef.current) {
+      clearTimeout(fallIntervalRef.current);
+      fallIntervalRef.current = null;
+    }
+  };
 
-      clearTimeout(fallInterval);
-      fallInterval = setTimeout(
-        fall,
-        out === undefined ? speeds[store.speedRun - 1] : out
-      );
-    },
+  /**
+   * 写入分数，同时判断是否创造了最高记录
+   * @param point
+   */
+  function dispatchPoint(point: number) {
+    storeDispatch(actions.point(point));
+    if (point > 0 && point > store.max) {
+      storeDispatch(actions.max(point));
+    }
+  }
 
-    // 前一个方块已经固定到界面中，生成下一个方块
-    nextAround(matrix: Matrix, stopDownTrigger?: Function) {
-      clearTimeout(fallInterval);
-      storeDispatch(actions.lock(true));
-      storeDispatch(actions.matrix(matrix));
-      if (typeof stopDownTrigger === "function") {
-        stopDownTrigger();
-      }
+  /**
+   * 游戏开始
+   */
+  function start() {
+    storeDispatch(actions.speedRun(store.speedStart));
+    const startMatrix = getStartMatrix(0);
+    storeDispatch(actions.matrix(startMatrix));
+    storeDispatch(actions.moveBlock({ blockParam: { type: store.nextBlock } }));
+    storeDispatch(actions.nextBlock());
+    auto();
+  }
 
-      // 得分
-      const addPoint = store.point + 10 + (store.speedRun - 1) * 2;
-      this.dispatchPoint(addPoint);
-
-      // 如果能消除行，播放消行音效，停止生成下一个方块
-      if (isClear(matrix)) {
-        // if (music.clear) {
-        //   music.clear();
-        // }
-        return;
-      }
-
-      // 如果结束，播放结束音效，停止生成下一个方块
-      if (isOver(matrix)) {
-        // if (music.gameover) {
-        //   music.gameover();
-        // }
-        this.overStart();
-        return;
-      }
-
-      setTimeout(() => {
-        storeDispatch(actions.lock(false));
-        storeDispatch(
-          actions.moveBlock({ blockParam: { type: store.nextBlock } })
+  /**
+   * 自动下落
+   * @param timeout
+   */
+  function auto(timeout?: number) {
+    const out = typeof timeout === "number" && timeout < 0 ? 0 : timeout;
+    const fall = () => {
+      const next = store.moveBlock!.fall();
+      if (want(next, store.matrix)) {
+        storeDispatch(actions.moveBlock({ blockParam: next }));
+        fallIntervalRef.current = setTimeout(fall, speeds[store.speedRun - 1]);
+      } else {
+        // 如果方块已经无法移动了，就将其固定在matrix上
+        const newMatrix = store.matrix.map((row) => [...row]);
+        const { shape, xy } = store.moveBlock!;
+        shape.forEach((m, i) =>
+          m.forEach((n, j) => {
+            if (n && xy[0] + i >= 0) {
+              // 纵坐标有可能为负，所以需确定当前小方块在显示范围内
+              newMatrix[xy[0] + i][xy[1] + j] = 1;
+            }
+          })
         );
-        storeDispatch(actions.nextBlock());
-        this.auto();
-      }, 100);
-    },
-
-    // 写入分数，同时判断是否创造了最高记录
-    dispatchPoint(point: number) {
-      storeDispatch(actions.point(point));
-      if (point > 0 && point > store.max) {
-        storeDispatch(actions.max(point));
+        nextAround(newMatrix);
       }
-    },
+    };
 
-    // 执行消除行操作
-    clearLines(matrix: Matrix, lines: number[]) {
-      const newMatrix = matrix.map((row) => [...row]);
-      // 删除要消除的行，并添加空白行
-      lines.forEach((n) => {
-        newMatrix.splice(n, 1);
-        newMatrix.unshift([...blankLine]);
-      });
+    clearFallInterval();
+    fallIntervalRef.current = setTimeout(
+      fall,
+      out === undefined ? speeds[store.speedRun - 1] : out
+    );
+  }
 
-      storeDispatch(actions.matrix(newMatrix));
-      // 因为有要消除的行时，nextAround被中断，所以在消除完之后要再继续生成新的方块
+  /**
+   * 前一个方块已经固定到界面中，生成下一个方块
+   * @param matrix
+   * @param stopDownTrigger
+   * @returns
+   */
+  function nextAround(matrix: Matrix, stopDownTrigger?: Function) {
+    clearFallInterval();
+    storeDispatch(actions.lock(true));
+    storeDispatch(actions.matrix(matrix));
+    if (typeof stopDownTrigger === "function") {
+      stopDownTrigger();
+    }
+
+    // 得分
+    const addPoint = store.point + 10 + (store.speedRun - 1) * 2;
+    dispatchPoint(addPoint);
+
+    // 如果能消除行，播放消行音效，停止生成下一个方块
+    if (isClear(matrix)) {
+      // if (music.clear) {
+      //   music.clear();
+      // }
+      return;
+    }
+
+    // 如果结束，播放结束音效，停止生成下一个方块
+    if (isOver(matrix)) {
+      // if (music.gameover) {
+      //   music.gameover();
+      // }
+      overStart();
+      return;
+    }
+
+    setTimeout(() => {
+      storeDispatch(actions.lock(false));
       storeDispatch(
         actions.moveBlock({ blockParam: { type: store.nextBlock } })
       );
       storeDispatch(actions.nextBlock());
-      this.auto();
+      auto();
+    }, 100);
+  }
 
-      // 累计消除的行数
-      storeDispatch(actions.lock(false));
-      const clearLinesCount = store.clearLines + lines.length;
-      storeDispatch(actions.clearLines(clearLinesCount));
+  /**
+   * 执行消除行操作
+   * @param matrix
+   * @param lines
+   */
+  function clearLines(matrix: Matrix, lines: number[]) {
+    const newMatrix = matrix.map((row) => [...row]);
+    // 删除要消除的行，并添加空白行
+    lines.forEach((n) => {
+      newMatrix.splice(n, 1);
+      newMatrix.unshift([...blankLine]);
+    });
 
-      // 得分
-      const addPoint = store.point + clearPoints[lines.length - 1]; // 一次消除的行越多, 加分越多
-      this.dispatchPoint(addPoint);
+    storeDispatch(actions.matrix(newMatrix));
+    // 因为有要消除的行时，nextAround被中断，所以在消除完之后要再继续生成新的方块
+    storeDispatch(actions.moveBlock({ blockParam: { type: store.nextBlock } }));
+    storeDispatch(actions.nextBlock());
+    auto();
 
-      // 消除行数, 增加对应速度
-      const speedAdd = Math.floor(clearLinesCount / eachLines);
-      const speedNow = store.speedStart + speedAdd;
-      storeDispatch(actions.speedRun(speedNow > 6 ? 6 : speedNow));
-    },
+    // 累计消除的行数
+    storeDispatch(actions.lock(false));
+    const clearLinesCount = store.clearLines + lines.length;
+    storeDispatch(actions.clearLines(clearLinesCount));
 
-    pause(isPause: boolean) {
-      storeDispatch(actions.pause(isPause));
-      if (isPause) {
-        clearTimeout(fallInterval);
-        return;
-      }
-      this.auto();
-    },
+    // 得分
+    const addPoint = store.point + clearPoints[lines.length - 1]; // 一次消除的行越多, 加分越多
+    dispatchPoint(addPoint);
 
-    // 游戏结束，触发动画
-    overStart() {
-      clearTimeout(fallInterval);
-      storeDispatch(actions.lock(true));
-      storeDispatch(actions.reset(true));
-      storeDispatch(actions.pause(false));
-    },
+    // 消除行数, 增加对应速度
+    const speedAdd = Math.floor(clearLinesCount / eachLines);
+    const speedNow = store.speedStart + speedAdd;
+    storeDispatch(actions.speedRun(speedNow > 6 ? 6 : speedNow));
+  }
 
-    // 游戏结束动画完成
-    overEnd() {
-      storeDispatch(actions.matrix(blankMatrix));
-      storeDispatch(actions.moveBlock({ reset: true }));
-      storeDispatch(actions.reset(false));
-      storeDispatch(actions.lock(false));
-      storeDispatch(actions.clearLines(0));
-    },
+  function pause(isPause: boolean) {
+    storeDispatch(actions.pause(isPause));
+    if (isPause) {
+      clearFallInterval();
+      return;
+    }
+    auto();
+  }
+
+  /**
+   * 游戏结束，触发动画
+   */
+  function overStart() {
+    clearFallInterval();
+    storeDispatch(actions.lock(true));
+    storeDispatch(actions.reset(true));
+    storeDispatch(actions.pause(false));
+  }
+
+  /**
+   * 游戏结束动画完成
+   */
+  function overEnd() {
+    storeDispatch(actions.matrix(blankMatrix));
+    storeDispatch(actions.moveBlock({ reset: true }));
+    storeDispatch(actions.reset(false));
+    storeDispatch(actions.lock(false));
+    storeDispatch(actions.clearLines(0));
+  }
+
+  return {
+    start,
+    auto,
+    nextAround,
+    dispatchPoint,
+    clearLines,
+    pause,
+    overStart,
+    overEnd,
   };
 }
