@@ -112,7 +112,7 @@ export default function useGameStates() {
    * @param stopDownTrigger
    * @returns
    */
-  function nextAround(matrix: Matrix, stopDownTrigger?: Function) {
+  function nextAround(matrix: Matrix, stopDownTrigger?: () => void) {
     clearFallInterval();
     storeDispatch(actions.lock(true));
     storeDispatch(actions.matrix(matrix));
