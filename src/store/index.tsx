@@ -3,6 +3,7 @@ import {
   useReducer,
   useContext,
   useMemo,
+  useEffect,
   default as React,
 } from "react";
 
@@ -75,10 +76,24 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
     [store, dispatch, nextAround]
   );
 
-  if (store.moveBlock && !store.pause) {
-    clearFallInterval();
-    fallIntervalRef.current = setTimeout(autoFall, speeds[store.speedRun - 1]);
-  }
+  useEffect(() => {
+    if (store.moveBlock && !store.pause) {
+      clearFallInterval();
+      fallIntervalRef.current = setTimeout(
+        autoFall,
+        speeds[store.speedRun - 1]
+      );
+    }
+    // 依赖项：仅当这些值变化时才重新执行
+    return () => clearFallInterval(); // 组件卸载或依赖变化时清除定时器
+  }, [
+    store.moveBlock,
+    store.pause,
+    store.speedRun,
+    autoFall,
+    fallIntervalRef,
+    clearFallInterval,
+  ]);
 
   return (
     <>

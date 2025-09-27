@@ -92,7 +92,7 @@ function point(data: number): Action {
 
 function max(data: number): Action {
   return {
-    type: ActionType.POINT,
+    type: ActionType.MAX,
     data,
   };
 }

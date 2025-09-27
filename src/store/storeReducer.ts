@@ -73,7 +73,10 @@ function storeReducer(store: StoreContext, action: Action) {
         clearLines: action.data,
       };
     default:
-      throw new Error("unknown action");
+      if (import.meta.env.MODE !== "production") {
+        throw new Error("unknown action");
+      }
+      return store;
   }
 }
 

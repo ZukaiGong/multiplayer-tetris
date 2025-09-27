@@ -63,7 +63,8 @@ function createAutoFall(
   nextAround: (matrix: Matrix, stopDownTrigger?: () => void) => void
 ) {
   return function autoFall(timeout?: number) {
-    const next = store.moveBlock!.fall();
+    if (!store.moveBlock) return;
+    const next = store.moveBlock.fall();
     if (want(next, store.matrix)) {
       storeDispatch(actions.moveBlock({ blockParam: next }));
     } else {
