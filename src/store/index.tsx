@@ -1,110 +1,102 @@
-import { createContext, useReducer, useContext, default as React } from "react";
+import {
+  createContext,
+  useReducer,
+  useContext,
+  useMemo,
+  default as React,
+} from "react";
 
-import { ActionType } from "./actions";
-import { getNextType } from "@/utils";
-import Block from "@/utils/block";
-import { blankMatrix } from "@/utils/constant";
+import useFallInterval from "@/control/useFallInterval";
+import { initialStore, storeReducer } from "./storeReducer";
+import {
+  createStart,
+  createUpdatePoint,
+  createAutoFall,
+  createNextAround,
+  createClearLines,
+  createPause,
+  createOverStart,
+  createOverEnd,
+} from "@/control/states";
+import { speeds } from "@/utils/constant";
 
-import type { Matrix } from "@/types";
-import type { Action } from "./actions";
-
-interface StoreContext {
-  matrix: Matrix;
-  speedStart: number;
-  speedRun: number;
-  moveBlock: Block | null;
-  nextBlock: ReturnType<typeof getNextType>;
-  lock: boolean;
-  point: number;
-  max: number;
-  pause: boolean;
-  reset: boolean;
-  clearLines: number;
-}
-
-function storeReducer(store: StoreContext, action: Action) {
-  switch (action.type) {
-    case ActionType.MATRIX:
-      return {
-        ...store,
-        matrix: action.data,
-      };
-    case ActionType.SPEED_RUN:
-      return {
-        ...store,
-        speedRun: action.data,
-      };
-    case ActionType.MOVE_BLOCK:
-      return {
-        ...store,
-        moveBlock: action.data,
-      };
-    case ActionType.NEXT_BLOCK:
-      return {
-        ...store,
-        nextBlock: action.data,
-      };
-    case ActionType.LOCK:
-      return {
-        ...store,
-        lock: action.data,
-      };
-    case ActionType.POINT:
-      return {
-        ...store,
-        point: action.data,
-      };
-    case ActionType.MAX:
-      return {
-        ...store,
-        max: action.data,
-      };
-    case ActionType.PAUSE:
-      return {
-        ...store,
-        pause: action.data,
-      };
-    case ActionType.RESET:
-      return {
-        ...store,
-        reset: action.data,
-      };
-    case ActionType.CLEAR_LINES:
-      return {
-        ...store,
-        clearLines: action.data,
-      };
-    default:
-      throw new Error("unknown action");
-  }
-}
-
-const initialStore: StoreContext = {
-  matrix: blankMatrix,
-  speedStart: 1,
-  speedRun: 1,
-  moveBlock: null,
-  nextBlock: getNextType(),
-  lock: false,
-  point: 0,
-  max: 0,
-  pause: false,
-  reset: false,
-  clearLines: 0,
-};
+import type { StoreContext } from "./storeReducer";
 
 const StoreContext = createContext<StoreContext>(initialStore);
-const StoreDispatchContext = createContext<React.Dispatch<Action>>(() => {});
+const StoreDispatchContext = createContext<{
+  start: ReturnType<typeof createStart>;
+  autoFall: ReturnType<typeof createAutoFall>;
+  nextAround: ReturnType<typeof createNextAround>;
+  updatePoint: ReturnType<typeof createUpdatePoint>;
+  clearLines: ReturnType<typeof createClearLines>;
+  pause: ReturnType<typeof createPause>;
+  overStart: ReturnType<typeof createOverStart>;
+  overEnd: ReturnType<typeof createOverEnd>;
+} | null>(null);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [store, dispatch] = useReducer(storeReducer, initialStore);
 
+  const { fallIntervalRef, clearFallInterval } = useFallInterval();
+
+  const start = useMemo(() => createStart(store, dispatch), [store, dispatch]);
+  const updatePoint = useMemo(
+    () => createUpdatePoint(store, dispatch),
+    [store, dispatch]
+  );
+  const pause = useMemo(
+    () => createPause(dispatch, clearFallInterval),
+    [dispatch, clearFallInterval]
+  );
+  const overStart = useMemo(
+    () => createOverStart(dispatch, clearFallInterval),
+    [dispatch, clearFallInterval]
+  );
+  const overEnd = useMemo(() => createOverEnd(dispatch), [dispatch]);
+  const clearLines = useMemo(
+    () => createClearLines(store, dispatch, updatePoint),
+    [store, dispatch, updatePoint]
+  );
+  const nextAround = useMemo(
+    () =>
+      createNextAround(
+        store,
+        dispatch,
+        clearFallInterval,
+        updatePoint,
+        overStart
+      ),
+    [store, dispatch, clearFallInterval, updatePoint, overStart]
+  );
+  const autoFall = useMemo(
+    () => createAutoFall(store, dispatch, nextAround),
+    [store, dispatch, nextAround]
+  );
+
+  if (store.moveBlock && !store.pause) {
+    clearFallInterval();
+    fallIntervalRef.current = setTimeout(autoFall, speeds[store.speedRun - 1]);
+  }
+
   return (
     <>
       <StoreContext value={store}>
-        <StoreDispatchContext value={dispatch}>{children}</StoreDispatchContext>
+        <StoreDispatchContext
+          value={{
+            start,
+            autoFall,
+            nextAround,
+            updatePoint,
+            clearLines,
+            pause,
+            overStart,
+            overEnd,
+          }}
+        >
+          {children}
+        </StoreDispatchContext>
       </StoreContext>
     </>
   );
