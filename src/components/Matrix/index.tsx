@@ -1,10 +1,13 @@
-import { useStore } from "@/store/index";
+import { useStore, useStoreDispatch } from "@/store/index";
 import classnames from "classnames";
+import useControl from "@/control";
 
 import style from "./index.module.css";
 
 export default function Matrix() {
   const store = useStore();
+  const storeDispatch = useStoreDispatch()!;
+  useControl(store, storeDispatch);
 
   /**
    * 在游戏进行中，画面是由store.matrix与当前方块计算得出，

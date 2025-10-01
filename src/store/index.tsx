@@ -22,18 +22,22 @@ import {
 import { speeds } from "@/utils/constant";
 
 import type { StoreContext } from "./storeReducer";
+import type { Action } from "./actions";
 
-const StoreContext = createContext<StoreContext>(initialStore);
-const StoreDispatchContext = createContext<{
+export interface IStoreDispatchContext {
   start: ReturnType<typeof createStart>;
   autoFall: ReturnType<typeof createAutoFall>;
-  nextAround: ReturnType<typeof createNextAround>;
+  // nextAround: ReturnType<typeof createNextAround>;
   updatePoint: ReturnType<typeof createUpdatePoint>;
   clearLines: ReturnType<typeof createClearLines>;
   pause: ReturnType<typeof createPause>;
   overStart: ReturnType<typeof createOverStart>;
   overEnd: ReturnType<typeof createOverEnd>;
-} | null>(null);
+  dispatch: React.Dispatch<Action>;
+}
+
+const StoreContext = createContext<StoreContext>(initialStore);
+const StoreDispatchContext = createContext<IStoreDispatchContext | null>(null);
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -102,12 +106,13 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({
           value={{
             start,
             autoFall,
-            nextAround,
+            // nextAround,
             updatePoint,
             clearLines,
             pause,
             overStart,
             overEnd,
+            dispatch,
           }}
         >
           {children}

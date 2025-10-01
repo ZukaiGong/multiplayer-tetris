@@ -1,9 +1,13 @@
-import type { Matrix } from "@/types";
 import { getNextType } from "@/utils";
 import Block from "@/utils/block";
+import { keyboardActions } from "./keyboardActions";
+
+import type { Matrix } from "@/types";
+import type { KeyboardAction } from "./keyboardActions";
 
 export enum ActionType {
   MATRIX = "MATRIX",
+  SPEED_START = "SPEED_START",
   SPEED_RUN = "SPEED_RUN", // 掉落的速度，速度表 speeds 的索引
   MOVE_BLOCK = "MOVE_BLOCK", // 当前掉落的方块
   NEXT_BLOCK = "NEXT_BLOCK", // 下一个方块的类型
@@ -17,6 +21,7 @@ export enum ActionType {
 
 export type Action =
   | { type: ActionType.MATRIX; data: Matrix }
+  | { type: ActionType.SPEED_START; data: number }
   | { type: ActionType.SPEED_RUN; data: number }
   | { type: ActionType.NEXT_BLOCK; data: ReturnType<typeof getNextType> }
   | { type: ActionType.MOVE_BLOCK; data: Block | null }
@@ -25,10 +30,12 @@ export type Action =
   | { type: ActionType.MAX; data: number }
   | { type: ActionType.PAUSE; data: boolean }
   | { type: ActionType.RESET; data: boolean }
-  | { type: ActionType.CLEAR_LINES; data: number };
+  | { type: ActionType.CLEAR_LINES; data: number }
+  | KeyboardAction;
 
 export const actions = {
   matrix,
+  speedStart,
   speedRun,
   nextBlock,
   moveBlock,
@@ -38,11 +45,19 @@ export const actions = {
   pause,
   reset,
   clearLines,
+  keyboard: keyboardActions,
 };
 
 function matrix(data: Matrix): Action {
   return {
     type: ActionType.MATRIX,
+    data,
+  };
+}
+
+function speedStart(data: number): Action {
+  return {
+    type: ActionType.SPEED_START,
     data,
   };
 }

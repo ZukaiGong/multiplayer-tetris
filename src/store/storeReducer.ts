@@ -1,4 +1,5 @@
 import { ActionType } from "./actions";
+import { KeyboardActionType } from "./keyboardActions";
 import { getNextType } from "@/utils";
 import Block from "@/utils/block";
 import { blankMatrix } from "@/utils/constant";
@@ -18,6 +19,10 @@ export interface StoreContext {
   pause: boolean;
   reset: boolean;
   clearLines: number;
+  keyboard: {
+    left: boolean;
+    right: boolean;
+  };
 }
 
 function storeReducer(store: StoreContext, action: Action) {
@@ -26,6 +31,11 @@ function storeReducer(store: StoreContext, action: Action) {
       return {
         ...store,
         matrix: action.data,
+      };
+    case ActionType.SPEED_START:
+      return {
+        ...store,
+        speedStart: action.data,
       };
     case ActionType.SPEED_RUN:
       return {
@@ -72,6 +82,22 @@ function storeReducer(store: StoreContext, action: Action) {
         ...store,
         clearLines: action.data,
       };
+    case KeyboardActionType.KEY_LEFT:
+      return {
+        ...store,
+        keyboard: {
+          ...store.keyboard,
+          left: action.data,
+        },
+      };
+    case KeyboardActionType.KEY_RIGHT:
+      return {
+        ...store,
+        keyboard: {
+          ...store.keyboard,
+          right: action.data,
+        },
+      };
     default:
       if (import.meta.env.MODE !== "production") {
         throw new Error("unknown action");
@@ -92,6 +118,10 @@ const initialStore: StoreContext = {
   pause: false,
   reset: false,
   clearLines: 0,
+  keyboard: {
+    left: false,
+    right: false,
+  },
 };
 
 export { initialStore, storeReducer };

@@ -70,7 +70,7 @@ function createAutoFall(
     } else {
       // 如果方块已经无法移动了，就将其固定在matrix上
       const newMatrix = store.matrix.map((row) => [...row]);
-      const { shape, xy } = store.moveBlock!;
+      const { shape, xy } = store.moveBlock;
       shape.forEach((m, i) =>
         m.forEach((n, j) => {
           if (n && xy[0] + i >= 0) {

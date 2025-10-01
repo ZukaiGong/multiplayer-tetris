@@ -68,3 +68,5 @@ export const speeds = [800, 650, 500, 370, 250, 160] as const;
 export const clearPoints = [100, 300, 700, 1500] as const; // 消除不同的行数的得分
 
 export const eachLines = 20; // 每消除eachLines行, 增加速度
+
+export const delays = [50, 60, 70, 80, 90, 100] as const;
